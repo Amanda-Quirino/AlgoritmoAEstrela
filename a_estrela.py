@@ -12,40 +12,46 @@ class algoritmo_estrela:
 		self.no_inicial = no_partida - 1
 		self.no_final = no_destino - 1
 		self.no_atual = self.no_inicial
-		#Variável que irá armazenar o custo atual do caminho e a fronteira
-		self.g = 0 
-		self.border_list = [self.no_inicial]
-		self.border_list_f = [self.matrix_direct[self.no_inicial][self.no_final]]
-		self.border_list_g = [0]
-		self.caminho_final = []
 
-	def test(self, destino):
-		return self.border_list[self.node] == destino
+		#Declaração de Arrays
+		self.border_list = [self.no_inicial] #Armazenar a fronteira
+		self.border_list_f = [self.converte_tempo(self.matrix_direct[self.no_inicial][self.no_final])] # Armazena o F do nó inicial
+		self.border_list_g = [0] #Armazena o G do nó inicial
+		self.pais = [-1] * 14 #Array que indica o pai daquele nó
+		self.lista_visitados = [] #Array de controle que armazena os nós já visitados para evitar que um nó seja sobrescrito
+		self.pais.insert(self.no_atual, 'HEAD') # Inserindo na lista de pais dos nós o HEAD
+		self.lista_visitados.append(self.no_inicial) #Adcionando o nó inicial a lista de nós iniciais
 
 	def execution(self):
-		#Condição de parada -> Quando o primeiro valor da lista for o nó final
-		while(self.no_final != self.border_list[0]):
-			caminho = self.adicionar_borda()
-			if not caminho:
-				self.caminho_final.append(self.border_list.pop(0))
-			else:
-				self.border_list.pop(0)
 
+		#Condição de parada -> Quando o primeiro valor da lista for o nó final
+		#Adiciona os vizinhos a borda e depois tira esse Elemento
+		while(self.no_final != self.border_list[0]):
+			self.adicionar_borda()
+			self.border_list.pop(0)
 			self.border_list_f.pop(0)
 			self.border_list_g.pop(0)
-			self.no_atual = self.border_list[0]
+			self.no_atual = self.border_list[0] #Atualiza a variável de nó atual, é a partir dela que adicionamos os vizinhos a borda
 
-		self.caminho_final.append(self.no_final)
-		self.print_caminho()
+		self.print_caminho_alternativo()
 
-	def print_caminho(self):
-		for x in self.caminho_final:
-			print(f"{x + 1} -> ", end='')
+	#Função que realiza o print final
+	def print_caminho_alternativo(self):
+		#Print do nó final
+		no_atual = self.pais[self.no_final]
+		print(f"{self.no_final + 1} -> ", end='')
 
-	def verify(self):
-		pass
+		#Print do caminho
+		while no_atual != 'HEAD':
+			print(f"{no_atual + 1} -> ", end='')
 
-	#Temos que realizar essa conversão sempre, melhor trabalhar com tempo em minutos
+			no_atual = self.pais[no_atual]
+
+	#Conversção de km/h -> horas -> minutos
+	"""
+	Input: Distância entre nós
+	Output: Minutos
+	"""
 	def converte_tempo(self, val):
 		return (val / 30) * 60
 
@@ -61,12 +67,19 @@ class algoritmo_estrela:
 	#Função que serve para testar se o no_atual e o nó para ser o próximo estão na mesma estaçãou ou em estações diferentes
 	#Retorna o valor em minutos caso haja uma troca de estação
 	def verificar_troca_estacao(self, no):
-		
 		for lista in ESTACOES.values():
 			if no in lista and self.no_atual in lista:
 				return 0
 
 		return 4
+
+
+	#Função responsável por inserir na borda, na lista de F e na lista de valores G
+	#Modularização, evitar ficar repetindo código
+	def inserir_borda(self, pos, no, f, g):
+		self.border_list.insert(pos, no)
+		self.border_list_f.insert(pos, f)
+		self.border_list_g.insert(pos, g)
 
 
 	def ordenar_borda(self, no):
@@ -81,34 +94,34 @@ class algoritmo_estrela:
 		#Inserção ordenada
 		for x in range(len(self.border_list)):
 			if  f < self.border_list_f[x] and x == 0: # caso em que ele é o menor valor da fronteira
-				self.border_list.insert(x, no)
-				self.border_list_f.insert(x, f)
-				self.border_list_g.insert(x, g)
+				self.inserir_borda(x, no, f, g)
 				add = False
+				break
+				
 
-			elif self.border_list_f[x - 1] < f < self.border_list_f[x]: # valor no meio da fronteira
-				self.border_list.insert(x, no)
-				self.border_list_f.insert(x, f)
-				self.border_list_g.insert(x, g)
+			elif self.border_list_f[x - 1] <= f < self.border_list_f[x]: # valor no meio da fronteira
+				self.inserir_borda(x, no, f, g)
 				add = False
-
+				break
+				
 		if add: #Maior valor da fronteira
-			self.border_list.append(no)
-			self.border_list_g.append(g)
-			self.border_list_f.append(f)
+			self.inserir_borda(len(self.border_list), no, f, g)
 			
 
 	def adicionar_borda(self):
 		#Percorre a lista de vizinhos e os adiciona em uma lista
 		#Toda vez que ele insere um novo valor na borda, ele já entra ordenado
 		for nos in VIZINHOS_NO[self.no_atual]:
+			if nos not in self.lista_visitados:
+				self.lista_visitados.append(nos)
+				self.pais[nos] = self.no_atual
 			self.ordenar_borda(nos)
 
 if __name__ == '__main__':
+	#Recebendo dados das Estações
 	no_inicial = int(input("Digite o Nó inicial: E"))
 	no_final = int(input("Digite o Nó Final: E"))
-
+	
+	#Declarando Classe e Executando o Algoritmo
 	A = algoritmo_estrela(DIST_DIRET, DIST_REAL, VIZINHOS_NO, no_inicial, no_final)
 	A.execution()
-		
-
