@@ -1,5 +1,21 @@
 from matriz import *
 
+"""
+Classe nó para evitar a gambiarra de várias listas e possiblitar chegar no nó final e ir voltando apontando para o pai
+
+no -> Número nó
+g -> Valor g
+f -> Valor de f = g + h
+pai -> Pai desse nó
+"""
+
+class no:
+	def __init__(self, no, g, f, pai):
+		self.no = no
+		self.g = g
+		self.f = f
+		self.pai = pai
+
 class algoritmo_estrela:
 	def __init__(self, matrix_direta, matrix_distancia, lista_vizinhos, no_partida, no_destino):
 		
@@ -12,15 +28,13 @@ class algoritmo_estrela:
 		self.no_inicial = no_partida - 1
 		self.no_final = no_destino - 1
 		self.no_atual = self.no_inicial
+		
 		#Variável que irá armazenar o custo atual do caminho e a fronteira
 		self.g = 0 
 		self.border_list = [self.no_inicial]
 		self.border_list_f = [self.matrix_direct[self.no_inicial][self.no_final]]
 		self.border_list_g = [0]
 		self.caminho_final = []
-
-	def test(self, destino):
-		return self.border_list[self.node] == destino
 
 	def execution(self):
 		#Condição de parada -> Quando o primeiro valor da lista for o nó final
@@ -41,9 +55,6 @@ class algoritmo_estrela:
 	def print_caminho(self):
 		for x in self.caminho_final:
 			print(f"{x + 1} -> ", end='')
-
-	def verify(self):
-		pass
 
 	#Temos que realizar essa conversão sempre, melhor trabalhar com tempo em minutos
 	def converte_tempo(self, val):
@@ -110,5 +121,3 @@ if __name__ == '__main__':
 
 	A = algoritmo_estrela(DIST_DIRET, DIST_REAL, VIZINHOS_NO, no_inicial, no_final)
 	A.execution()
-		
-
