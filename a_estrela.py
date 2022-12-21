@@ -1,15 +1,11 @@
 from matriz import *
 
 class algoritmo_estrela:
-	def __init__(self, matrix_direta, matrix_distancia, lista_vizinhos, lista_h, lista_relacionamentos, no_partida, no_destino):
+	def __init__(self, matrix_direta, matrix_distancia, lista_vizinhos, no_partida, no_destino):
 		
-		#Não sei para q serve
-		self.h_list = lista_h
-		self.links_list = lista_relacionamentos
-
 		#Setando as matrizes de distância real, direta e a lista de vizinhos
 		self.matrix_direct = matrix_direta
-		self.matrix_real = matrix_real
+		self.matrix_real = matrix_distancia
 		self.vizinhos_lista = lista_vizinhos
 
 		#Variável para armazenar no o nó atual, inical e final
@@ -19,75 +15,100 @@ class algoritmo_estrela:
 		#Variável que irá armazenar o custo atual do caminho e a fronteira
 		self.g = 0 
 		self.border_list = [self.no_inicial]
+		self.border_list_f = [self.matrix_direct[self.no_inicial][self.no_final]]
+		self.border_list_g = [0]
+		self.caminho_final = []
 
-	def select(self):
-		self.node = self.lista_h.index(min(self.lista_h))
 	def test(self, destino):
 		return self.border_list[self.node] == destino
 
 	def execution(self):
 		#Condição de parada -> Quando o primeiro valor da lista for o nó final
 		while(self.no_final != self.border_list[0]):
+			caminho = self.adicionar_borda()
+			if not caminho:
+				self.caminho_final.append(self.border_list.pop(0))
+			else:
+				self.border_list.pop(0)
 
-			self.add_border()
+			self.border_list_f.pop(0)
+			self.border_list_g.pop(0)
+			self.no_atual = self.border_list[0]
 
+		self.caminho_final.append(self.no_final)
+		self.print_caminho()
 
-		
-
-	#Função Heurística
-	def func_h(self):
-		pass
-	
-	#função Gulosa
-	def func_g(self):
-		pass
+	def print_caminho(self):
+		for x in self.caminho_final:
+			print(f"{x + 1} -> ", end='')
 
 	def verify(self):
 		pass
 
 	#Temos que realizar essa conversão sempre, melhor trabalhar com tempo em minutos
-	def converte_tempo(val):
+	def converte_tempo(self, val):
 		return (val / 30) * 60
 
-	def verificar_troca_estacao(self, no):
-		presente = False
+	#Função Heurística -> Distancia até o nó final
+	def func_h(self, no):
+		return self.matrix_direct[no][self.no_final]
 
+	#função Gulosa
+	def func_g(self, no):
+		#Soma o valor do g até agora com a distância entre as duas estações
+		return self.matrix_real[no][self.no_atual] + self.border_list_g[self.border_list.index(self.no_atual)]
+
+	#Função que serve para testar se o no_atual e o nó para ser o próximo estão na mesma estaçãou ou em estações diferentes
+	#Retorna o valor em minutos caso haja uma troca de estação
+	def verificar_troca_estacao(self, no):
+		
 		for lista in ESTACOES.values():
 			if no in lista and self.no_atual in lista:
 				return 0
 
-			else:
-				return 4
+		return 4
 
 
 	def ordenar_borda(self, no):
-		add = true
-		"""
-		Aqui eu to fazendo uma inserção ordenada na lista, para isso eu comparo o valor da heuristica com o g(Custo real até agora) com a 
-		distância do nó atual para esse próximo nó que está sendo inserido na lista, para saber qual será sua posição na fronteira
+		#Inicialmente calculo o valor do g, h e f do nó atual, após isso faço a inserção na fronteira na posição correta
 
-		!!Esborço, temos que converter para tempo
-		!!Acredito que vamos desmembrar essa função em g e h
+		add = True
+		g = self.func_g(no)
+		h = self.func_h(no)
+		f = g + h
+		f = self.converte_tempo(f) + self.verificar_troca_estacao(no)
 
-		"""
+		#Inserção ordenada
 		for x in range(len(self.border_list)):
-			if matrix_direct[self.no][self.no_fina] + matrix_real[self.no][self.no_atual] + self.g < matrix_direct[self.border_list[x]][self.no_final] + matrix_real[self.no][self.no_atual] + self.g:
-				self.border_list.insert(x, self.no)
-				add = false
+			if  f < self.border_list_f[x] and x == 0: # caso em que ele é o menor valor da fronteira
+				self.border_list.insert(x, no)
+				self.border_list_f.insert(x, f)
+				self.border_list_g.insert(x, g)
+				add = False
 
-		if add:
-			self.border_list.append(self.no)
+			elif self.border_list_f[x - 1] < f < self.border_list_f[x]: # valor no meio da fronteira
+				self.border_list.insert(x, no)
+				self.border_list_f.insert(x, f)
+				self.border_list_g.insert(x, g)
+				add = False
+
+		if add: #Maior valor da fronteira
+			self.border_list.append(no)
+			self.border_list_g.append(g)
+			self.border_list_f.append(f)
 			
 
 	def adicionar_borda(self):
-
 		#Percorre a lista de vizinhos e os adiciona em uma lista
 		#Toda vez que ele insere um novo valor na borda, ele já entra ordenado
 		for nos in VIZINHOS_NO[self.no_atual]:
 			self.ordenar_borda(nos)
 
+if __name__ == '__main__':
+	no_inicial = int(input("Digite o Nó inicial: E"))
+	no_final = int(input("Digite o Nó Final: E"))
 
-
-
+	A = algoritmo_estrela(DIST_DIRET, DIST_REAL, VIZINHOS_NO, no_inicial, no_final)
+	A.execution()
 		
 
