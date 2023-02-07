@@ -18,34 +18,47 @@ class algoritmo_estrela:
 		self.border_list_f = [self.converte_tempo(self.matrix_direct[self.no_inicial][self.no_final])] # Armazena o F do nó inicial
 		self.border_list_g = [0] #Armazena o G do nó inicial
 		self.pais = [-1] * 14 #Array que indica o pai daquele nó
-		self.lista_visitados = [] #Array de controle que armazena os nós já visitados para evitar que um nó seja sobrescrito
+		self.lista_visitados = [self.no_inicial] #Array de controle que armazena os nós já visitados para evitar que um nó seja sobrescrito
 		self.pais.insert(self.no_atual, 'HEAD') # Inserindo na lista de pais dos nós o HEAD
-		self.lista_visitados.append(self.no_inicial) #Adcionando o nó inicial a lista de nós iniciais
 
 	def execution(self):
-
+		iteracao = 1
 		#Condição de parada -> Quando o primeiro valor da lista for o nó final
 		#Adiciona os vizinhos a borda e depois tira esse Elemento
 		while(self.no_final != self.border_list[0]):
 			self.adicionar_borda()
+			self.print_fronteira(iteracao)
 			self.border_list.pop(0)
 			self.border_list_f.pop(0)
 			self.border_list_g.pop(0)
 			self.no_atual = self.border_list[0] #Atualiza a variável de nó atual, é a partir dela que adicionamos os vizinhos a borda
+			iteracao += 1
 
 		self.print_caminho_alternativo()
+
+	def print_fronteira(self, interacao):
+		print(f"Fronteira Iteração {interacao}:", end=' ')
+		for x in self.border_list:
+			print(x + 1, end=' ')
+		print("")
 
 	#Função que realiza o print final
 	def print_caminho_alternativo(self):
 		#Print do nó final
+
+		lista_final = []
 		no_atual = self.pais[self.no_final]
+		print("Caminho Final:")
 		print(f"{self.no_final + 1} -> ", end='')
 
 		#Print do caminho
 		while no_atual != 'HEAD':
+			
 			print(f"{no_atual + 1} -> ", end='')
-
+			ultimo = no_atual
 			no_atual = self.pais[no_atual]
+
+		print(f"\nCusto do Caminho Final: {self.border_list_g[ultimo]}")
 
 	#Conversção de km/h -> horas -> minutos
 	"""
@@ -93,7 +106,7 @@ class algoritmo_estrela:
 
 		#Inserção ordenada
 		for x in range(len(self.border_list)):
-			if  f < self.border_list_f[x] and x == 0: # caso em que ele é o menor valor da fronteira
+			if  f < self.border_list_f[x] and x == 0: # caso em que ele é o menor valor da fronteira 0
 				self.inserir_borda(x, no, f, g)
 				add = False
 				break
