@@ -9,7 +9,7 @@ class vertice:
 		self.estacao = cor
 		self.n_trocas = trocas
 
-class algoritmo_estrela:
+class algoritmo_A_estrela:
 	def __init__(self, matrix_direta, matrix_distancia, lista_vizinhos, no_partida, no_destino):
 		
 		#Setando as matrizes de distância real, direta e a lista de vizinhos
@@ -30,26 +30,27 @@ class algoritmo_estrela:
 		#Condição de parada -> Quando o primeiro valor da lista for o nó final
 		#Adiciona os vizinhos a borda e depois tira esse Elemento
 		while(self.no_final != self.border_list[0].vertice):
-
+			
 			self.adicionar_borda()
+			self.border_list.remove(self.no_atual)
 			self.print_fronteira(iteracao)
-			self.border_list.pop(0)
 			self.no_atual = self.border_list[0] #Atualiza a variável de nó atual, é a partir dela que adicionamos os vizinhos a borda
 			iteracao += 1
 
 		self.print_caminho_alternativo()
 
 	def print_fronteira(self, interacao):
-		print("\n\nFRONTEIRA")
-		print(f"Fronteira Iteração {interacao}:")
+		print(f"Fronteira Iteração {interacao}:", end=' ')
 		for x in self.border_list:
-			print(f'E{x.vertice + 1} - Tempo até agora = {self.converte_tempo(x.g)}')
+			print(f'E{x.vertice + 1}', end=' ')
 		print("")
 
 	#Função que realiza o print final
 	def print_caminho_alternativo(self):
 
 		lista_final = []
+		custo_final = self.no_atual.g
+		trocas = self.no_atual.n_trocas
 
 		while self.no_atual.pai != 'HEAD':
 
@@ -58,6 +59,7 @@ class algoritmo_estrela:
 
 		lista_final.append(self.no_atual.vertice + 1)
 
+		print("Caminho Ótimo:", end=' ')
 		for x in range(len(lista_final) -1 , -1, -1):
 			if x != 0:
 				print(f'{lista_final[x]} -> ', end='')
@@ -65,7 +67,8 @@ class algoritmo_estrela:
 			else:
 				print(lista_final[x])
 
-
+		print(f"Custo Real: {self.converte_tempo(custo_final) + 4 * trocas:.2f} em Minutos\nCusto Real: {custo_final:.2f} em Metros")
+		
 	#Conversção de km/h -> horas -> minutos
 	"""
 	Input: Distância entre nós
@@ -78,13 +81,13 @@ class algoritmo_estrela:
 	def func_h(self, no):
 		return self.matrix_direct[no][self.no_final]
 
-	#função Gulosa
+	#Função Gulosa
 	def func_g(self, no):
 		#Soma o valor do g até agora com a distância entre as duas estações
 		return self.matrix_real[no][self.no_atual.vertice] + self.no_atual.g
 	#self.border_list_g[self.border_list.index(self.no_atual)]
 
-	#Função que serve para testar se o no_atual e o nó para ser o próximo estão na mesma estaçãou ou em estações diferentes
+	#Função que serve para testar se o no_atual e o nó para ser o próximo estão na mesma estação ou em estações diferentes
 	#Retorna o valor em minutos caso haja uma troca de estação
 	def verificar_troca_estacao(self, no):
 
@@ -104,11 +107,11 @@ class algoritmo_estrela:
 
 		return estacao_ligacao
 	
-	def adicao_troca_estacao(self, cor, no):
+	#O nó inicial sempre será nulo, pois não tem como saber por qual estação ele irá começar
+	def adicao_troca_estacao(self, cor):
 		if self.no_atual.estacao == 'NULL' or cor == self.no_atual.estacao:
 			return 0
 		elif cor != self.no_atual.estacao:
-			print(f"Passei aqui - {self.no_atual.vertice + 1} -> {no + 1}")
 			return 1
 
 	#Função responsável por inserir na borda, na lista de F e na lista de valores G
@@ -126,7 +129,7 @@ class algoritmo_estrela:
 		f = g + h
 
 		cor_estacao = self.verificar_troca_estacao(no)
-		trocas = self.no_atual.n_trocas + self.adicao_troca_estacao(cor_estacao, no)
+		trocas = self.no_atual.n_trocas + self.adicao_troca_estacao(cor_estacao)
 
 		f = self.converte_tempo(f) + 4 * trocas
 
@@ -150,7 +153,7 @@ class algoritmo_estrela:
 	def adicionar_borda(self):
 		#Percorre a lista de vizinhos e os adiciona em uma lista
 		#Toda vez que ele insere um novo valor na borda, ele já entra ordenado
-		for nos in VIZINHOS_NO[self.no_atual.vertice]:
+		for nos in self.vizinhos_lista[self.no_atual.vertice]:
 				self.ordenar_borda(nos)
 
 if __name__ == '__main__':
@@ -159,5 +162,5 @@ if __name__ == '__main__':
 	no_final = int(input("Digite o Nó Final: E"))
 	
 	#Declarando Classe e Executando o Algoritmo
-	A = algoritmo_estrela(DIST_DIRET, DIST_REAL, VIZINHOS_NO, no_inicial, no_final)
+	A = algoritmo_A_estrela(DIST_DIRET, DIST_REAL, VIZINHOS_NO, no_inicial, no_final)
 	A.execution()
